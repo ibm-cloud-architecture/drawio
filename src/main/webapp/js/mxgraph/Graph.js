@@ -8393,8 +8393,7 @@ if (typeof mxVertexHandler != 'undefined')
 		 * @param {number} dy Y-coordinate of the translation.
 		 */
 		Graph.prototype.getSvg = function(background, scale, border, nocrop, crisp,
-			ignoreSelection, showText, imgExport, linkTarget, hasShadow, incExtFonts,
-			keepTheme, exportType)
+			ignoreSelection, showText, imgExport, linkTarget, hasShadow)
 		{
 			//Disable Css Transforms if it is used
 			var origUseCssTrans = this.useCssTransforms;
@@ -8414,10 +8413,9 @@ if (typeof mxVertexHandler != 'undefined')
 				ignoreSelection = (ignoreSelection != null) ? ignoreSelection : true;
 				showText = (showText != null) ? showText : true;
 	
-				var bounds = (exportType == 'page') ? this.view.getBackgroundPageBounds() :
-					((ignoreSelection || nocrop || exportType == 'diagram') ?
+				var bounds = (ignoreSelection || nocrop) ?
 					this.getGraphBounds() : this.getBoundingBox(
-					this.getSelectionCells()));
+					this.getSelectionCells());
 	
 				if (bounds == null)
 				{
@@ -8622,7 +8620,7 @@ if (typeof mxVertexHandler != 'undefined')
 		 */
 		Graph.prototype.addForeignObjectWarning = function(canvas, root)
 		{
-			if (urlParams['svg-warning'] != '0' && root.getElementsByTagName('foreignObject').length > 0)
+			if (root.getElementsByTagName('foreignObject').length > 0)
 			{
 				var sw = canvas.createElement('switch');
 				var g1 = canvas.createElement('g');

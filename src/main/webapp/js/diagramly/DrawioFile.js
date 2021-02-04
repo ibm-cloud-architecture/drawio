@@ -689,7 +689,7 @@ DrawioFile.prototype.ignorePatches = function(patches)
 /**
  * Applies the given patches to the file.
  */
-DrawioFile.prototype.patch = function(patches, resolver, undoable)
+DrawioFile.prototype.patch = function(patches, resolver)
 {
 	// Saves state of undo history
 	var undoMgr = this.ui.editor.undoManager;
@@ -702,7 +702,7 @@ DrawioFile.prototype.patch = function(patches, resolver, undoable)
 
 	// Ignores change events
 	var prev = this.changeListenerEnabled;
-	this.changeListenerEnabled = undoable;
+	this.changeListenerEnabled = false;
 	
 	// Folding and math change require special handling
 	var fold = graph.foldingEnabled;
@@ -755,12 +755,9 @@ DrawioFile.prototype.patch = function(patches, resolver, undoable)
 		this.changeListenerEnabled = prev;
 	
 		// Restores history state
-		if (!undoable)
-		{
-			undoMgr.history = history;
-			undoMgr.indexOfNextAdd = nextAdd;
-			undoMgr.fireEvent(new mxEventObject(mxEvent.CLEAR));
-		}
+		undoMgr.history = history;
+		undoMgr.indexOfNextAdd = nextAdd;
+		undoMgr.fireEvent(new mxEventObject(mxEvent.CLEAR));
 		
 		if (this.ui.currentPage == null || this.ui.currentPage.needsUpdate)
 		{
