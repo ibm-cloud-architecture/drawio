@@ -2196,9 +2196,15 @@
 		
 		if (desc.url != null && desc.url.length > 0)
 		{
-			// Cannot use proxy here as it will block unknown text content
+            var realUrl = desc.url;
+            
+            if ((/^https?:\/\//.test(realUrl)) && !this.editor.isCorsEnabledForUrl(realUrl))
+            {
+                realUrl = PROXY_URL + '?url=' + encodeURIComponent(realUrl);
+            }
+
             // LATER: Remove cache-control header
-            this.editor.loadUrl(desc.url, mxUtils.bind(this, function(data)
+            this.editor.loadUrl(realUrl, mxUtils.bind(this, function(data)
             {
             	loadData(data);
             }), mxUtils.bind(this, function(err)
@@ -9262,21 +9268,14 @@
 					
 				    if (evt.dataTransfer.files.length > 0)
 				    {
-				    	if (mxEvent.isControlDown(evt) || (mxClient.IS_MAC && mxEvent.isMetaDown(evt)))
-				    	{
-				    		this.openFiles(evt.dataTransfer.files, true);
-				    	}
-				    	else
-				    	{
-							if (mxEvent.isAltDown(evt))
-							{
-								x = null;
-								y = null;
-							}
-							
-							this.importFiles(evt.dataTransfer.files, x, y, this.maxImageSize, null, null, null, null,
-								mxEvent.isControlDown(evt), null, null, mxEvent.isShiftDown(evt));
-				    	}
+						if (mxEvent.isAltDown(evt))
+						{
+							x = null;
+							y = null;
+						}
+						
+						this.importFiles(evt.dataTransfer.files, x, y, this.maxImageSize, null, null, null, null,
+							mxEvent.isControlDown(evt), null, null, mxEvent.isShiftDown(evt));
 		    		}
 				    else
 				    {
@@ -11102,8 +11101,8 @@
 						var enableSearchDocs = data.enableSearch == 1;
 						var enableCustomTemp = data.enableCustomTemp == 1;
 						
-						var dlg = new NewDialog(this, false, data.templatesOnly? false : data.callback != null,
-							mxUtils.bind(this, function(xml, name, url, libs)
+						var dlg = new NewDialog(this, false, data.callback != null,
+							mxUtils.bind(this, function(xml, name)
 						{
 							xml = xml || this.emptyDiagramXml;
 							
@@ -11112,7 +11111,6 @@
 							{
 								parent.postMessage(JSON.stringify({event: 'template', xml: xml,
 									blank: xml == this.emptyDiagramXml, name: name,
-									tempUrl: url, libs: libs, builtIn: true,
 									message: data}), '*');
 							}
 							else
@@ -11494,27 +11492,14 @@
 							this.embedFilenameSpan = tmp;
 						}
 						
-						try
-						{
-							if (data.libs)
-							{
-								this.sidebar.showEntries(data.libs);
-							}
-						}
-						catch(e){}
-
 						if (data.xmlpng != null)
 						{
 							data = this.extractGraphModelFromPng(data.xmlpng);
 						}
-						else if (data.descriptor != null)
-						{
-							data = data.descriptor;
-						}
 						else
 						{
 							data = data.xml;
-						}						
+						}
 					}
 					else if (data.action == 'merge')
 					{
@@ -11567,12 +11552,6 @@
 					this.handleError(e);
 				}
 			}
-						
-			var getData = mxUtils.bind(this, function()
-			{
-				return (urlParams['pages'] != '0' || (this.pages != null && this.pages.length > 1)) ?
-					this.getFileData(true): mxUtils.getXml(this.editor.getGraphXml());
-			});;
 			
 			var doLoad = mxUtils.bind(this, function(data, evt)
 			{
@@ -11591,7 +11570,13 @@
 				{
 					this.editor.setStatus('');
 				}
-
+				
+				var getData = mxUtils.bind(this, function()
+				{
+					return (urlParams['pages'] != '0' || (this.pages != null && this.pages.length > 1)) ?
+						this.getFileData(true): mxUtils.getXml(this.editor.getGraphXml());
+				});;
+				
 				lastData = getData();
 
 				if (autosave && changeListener == null)
@@ -11672,16 +11657,6 @@
 				}), mxUtils.bind(this, function(e)
 				{
 					this.handleError(e);
-				}));
-			}
-			else if (data != null && typeof data === 'object' && data.format != null && (data.data != null || data.url != null))
-			{
-				this.loadDescriptor(data, mxUtils.bind(this, function(e)
-				{
-					doLoad(getData(), evt);
-				}), mxUtils.bind(this, function(e)
-				{
-					this.handleError(e, mxResources.get('errorLoadingFile'));
 				}));
 			}
 			else
