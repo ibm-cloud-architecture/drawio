@@ -1086,169 +1086,141 @@ DriveClient.prototype.getXmlFile = function(resp, success, error, ignoreMime, re
 		}
 		else
 		{
-			var retryCount = 0;
-
-			var fn = mxUtils.bind(this, function()
+			// Loads XML to initialize realtime document if realtime is empty
+			this.ui.editor.loadUrl(url, mxUtils.bind(this, function(data)
 			{
-				// Loads XML to initialize realtime document if realtime is empty
-				this.ui.editor.loadUrl(url, mxUtils.bind(this, function(data)
+				try
 				{
-					try
+					if (data == null)
 					{
-						if (data == null)
+						// TODO: Optional redirect to legacy if link is for old file
+						error({message: mxResources.get('invalidOrMissingFile')});
+					}
+					else if (resp.mimeType == this.libraryMimeType || readLibrary)
+					{
+						if (resp.mimeType == this.libraryMimeType && !readLibrary)
 						{
-							// TODO: Optional redirect to legacy if link is for old file
-							error({message: mxResources.get('invalidOrMissingFile')});
-						}
-						else if (resp.mimeType == this.libraryMimeType || readLibrary)
-						{
-							if (resp.mimeType == this.libraryMimeType && !readLibrary)
-							{
-								error({message: mxResources.get('notADiagramFile')});
-							}
-							else
-							{
-								success(new DriveLibrary(this.ui, data, resp));
-							}
+							error({message: mxResources.get('notADiagramFile')});
 						}
 						else
 						{
-							var importFile = false;
+							success(new DriveLibrary(this.ui, data, resp));
+						}
+					}
+					else
+					{
+						var importFile = false;
+						
+						if (/\.png$/i.test(resp.title))
+						{
+							var index = data.lastIndexOf(',');
 							
-							if (/\.png$/i.test(resp.title))
+							if (index > 0)
 							{
-								var index = data.lastIndexOf(',');
-								
-								if (index > 0)
-								{
-									var xml = this.ui.extractGraphModelFromPng(data.substring(index + 1));
-									
-									if (xml != null && xml.length > 0)
-									{
-										data = xml;
-									}
-									else
-									{
-										// Checks if the file contains XML data which can happen when we insert
-										// the file and then don't post-process it when loaded into the UI which
-										// is required for creating the images for .PNG and .SVG files.
-										try
-										{
-											var xml = data.substring(index + 1);
-											var temp = (window.atob && !mxClient.IS_IE && !mxClient.IS_IE11) ?
-												atob(xml) : Base64.decode(xml);
-											var node = this.ui.editor.extractGraphModel(
-												mxUtils.parseXml(temp).documentElement, true);
-											
-											if (node == null || node.getElementsByTagName('parsererror').length > 0)
-											{
-												importFile = true;
-											}
-											else
-											{
-												data = temp;
-											}
-										}
-										catch (e)
-										{
-											importFile = true;
-										}
-									}
-								}
-							}
-							else if (/\.pdf$/i.test(resp.title))
-							{
-								var xml = Editor.extractGraphModelFromPdf(data);
+								var xml = this.ui.extractGraphModelFromPng(data.substring(index + 1));
 								
 								if (xml != null && xml.length > 0)
 								{
-									importFile = true;
 									data = xml;
 								}
-							}
-							// Checks for base64 encoded mxfile
-							else if (data.substring(0, 32) == 'data:image/png;base64,PG14ZmlsZS')
-							{
-								var temp = data.substring(22);
-								data = (window.atob && !mxClient.IS_SF) ? atob(temp) : Base64.decode(temp);
-							}
-							
-							if (Graph.fileSupport && new XMLHttpRequest().upload && this.ui.isRemoteFileFormat(data, url))
-							{
-								this.ui.parseFile(new Blob([data], {type: 'application/octet-stream'}), mxUtils.bind(this, function(xhr)
+								else
 								{
+									// Checks if the file contains XML data which can happen when we insert
+									// the file and then don't post-process it when loaded into the UI which
+									// is required for creating the images for .PNG and .SVG files.
 									try
 									{
-										if (xhr.readyState == 4)
+										var xml = data.substring(index + 1);
+										var temp = (window.atob && !mxClient.IS_IE && !mxClient.IS_IE11) ?
+											atob(xml) : Base64.decode(xml);
+										var node = this.ui.editor.extractGraphModel(
+											mxUtils.parseXml(temp).documentElement, true);
+										
+										if (node == null || node.getElementsByTagName('parsererror').length > 0)
 										{
-											if (xhr.status >= 200 && xhr.status <= 299)
-											{
-												success(new LocalFile(this.ui, xhr.responseText, resp.title + this.extension, true));
-											}
-											else if (error != null)
-											{
-												error({message: mxResources.get('errorLoadingFile')});
-											}
+											importFile = true;
+										}
+										else
+										{
+											data = temp;
 										}
 									}
 									catch (e)
 									{
-										if (error != null)
-										{
-											error(e);
-										}
-										else
-										{
-											throw e;
-										}
+										importFile = true;
 									}
-								}), resp.title);
-							}
-							else
-							{
-								success((importFile) ? new LocalFile(this.ui, data, resp.title, true) : new DriveFile(this.ui, data, resp));
+								}
 							}
 						}
-					}
-					catch (e)
-					{
-						if (error != null)
+						else if (/\.pdf$/i.test(resp.title))
 						{
-							error(e);
+							var xml = Editor.extractGraphModelFromPdf(data);
+							
+							if (xml != null && xml.length > 0)
+							{
+								importFile = true;
+								data = xml;
+							}
+						}
+						// Checks for base64 encoded mxfile
+						else if (data.substring(0, 32) == 'data:image/png;base64,PG14ZmlsZS')
+						{
+							var temp = data.substring(22);
+							data = (window.atob && !mxClient.IS_SF) ? atob(temp) : Base64.decode(temp);
+						}
+						
+						if (Graph.fileSupport && new XMLHttpRequest().upload && this.ui.isRemoteFileFormat(data, url))
+						{
+							this.ui.parseFile(new Blob([data], {type: 'application/octet-stream'}), mxUtils.bind(this, function(xhr)
+							{
+								try
+								{
+									if (xhr.readyState == 4)
+									{
+										if (xhr.status >= 200 && xhr.status <= 299)
+										{
+											success(new LocalFile(this.ui, xhr.responseText, resp.title + this.extension, true));
+										}
+										else if (error != null)
+										{
+											error({message: mxResources.get('errorLoadingFile')});
+										}
+									}
+								}
+								catch (e)
+								{
+									if (error != null)
+									{
+										error(e);
+									}
+									else
+									{
+										throw e;
+									}
+								}
+							}), resp.title);
 						}
 						else
 						{
-							throw e;
+							success((importFile) ? new LocalFile(this.ui, data, resp.title, true) : new DriveFile(this.ui, data, resp));
 						}
 					}
-				}), mxUtils.bind(this, function(e, req)
+				}
+				catch (e)
 				{
-					if (retryCount < this.maxRetries && req != null && req.getStatus() == 403)
+					if (error != null)
 					{
-						retryCount++;
-						var jitter = 1 + 0.1 * (Math.random() - 0.5);
-						var delay = retryCount * 2 * this.coolOff * jitter;
-
-						window.setTimeout(fn, delay);
+						error(e);
 					}
 					else
 					{
-						if (error != null)
-						{
-							error(e);
-						}
-						else
-						{
-							throw e;
-						}
+						throw e;
 					}
-				}), ((resp.mimeType != null && resp.mimeType.substring(0, 6) == 'image/' &&
-					resp.mimeType.substring(0, 9) != 'image/svg')) || /\.png$/i.test(resp.title) ||
-					/\.jpe?g$/i.test(resp.title) || /\.pdf$/i.test(resp.title),
-					null, null, null, headers);
-			});
-
-			fn();
+				}
+			}), error, ((resp.mimeType != null && resp.mimeType.substring(0, 6) == 'image/' &&
+				resp.mimeType.substring(0, 9) != 'image/svg')) || /\.png$/i.test(resp.title) ||
+				/\.jpe?g$/i.test(resp.title) || /\.pdf$/i.test(resp.title),
+				null, null, null, headers);
 		}
 	}
 	catch (e)
