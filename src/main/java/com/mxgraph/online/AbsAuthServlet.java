@@ -177,21 +177,18 @@ abstract public class AbsAuthServlet extends HttpServlet
 				
 				Cookie[] cookies = request.getCookies();
 				
-				if (cookies != null)
+				for (Cookie cookie : cookies)
 				{
-					for (Cookie cookie : cookies)
+					if (STATE_COOKIE.equals(cookie.getName()))
 					{
-						if (STATE_COOKIE.equals(cookie.getName()))
-						{
-							//Get the cached state based on the cookie key 
-							String cacheKey = cookie.getValue();
-							cookieToken = (String) tokenCache.get(cacheKey);
-							log.log(Level.INFO, "AUTH-SERVLET: [" + request.getRemoteAddr() + "] Found cookie state (" + cacheKey + " -> " + cookieToken + ")");
-							//Delete cookie & cache after being used since it is a single use
-							tokenCache.remove(cacheKey);
-							response.setHeader("Set-Cookie", STATE_COOKIE + "= ;path=" + cookiePath + "; expires=Thu, 01 Jan 1970 00:00:00 UTC; Secure; HttpOnly; SameSite=none");
-							break;
-						}
+						//Get the cached state based on the cookie key 
+						String cacheKey = cookie.getValue();
+						cookieToken = (String) tokenCache.get(cacheKey);
+						log.log(Level.INFO, "AUTH-SERVLET: [" + request.getRemoteAddr() + "] Found cookie state (" + cacheKey + " -> " + cookieToken + ")");
+						//Delete cookie & cache after being used since it is a single use
+						tokenCache.remove(cacheKey);
+						response.setHeader("Set-Cookie", STATE_COOKIE + "= ;path=" + cookiePath + "; expires=Thu, 01 Jan 1970 00:00:00 UTC; Secure; HttpOnly; SameSite=none");
+						break;
 					}
 				}
 			}

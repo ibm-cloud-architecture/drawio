@@ -828,18 +828,13 @@ GitHubClient.prototype.showGitHubDialog = function(showFiles, fn)
 		dlg.okButton.parentNode.removeChild(dlg.okButton);
 	}
 	
-	var createLink = mxUtils.bind(this, function(label, exec, padding, underline)
+	var createLink = mxUtils.bind(this, function(label, exec, padding)
 	{
 		var link = document.createElement('a');
 		link.setAttribute('title', label);
 		link.style.cursor = 'pointer';
 		mxUtils.write(link,  label);
 		mxEvent.addListener(link, 'click', exec);
-		
-		if (underline)
-		{
-			link.style.textDecoration = 'underline';
-		}
 		
 		if (padding != null)
 		{
@@ -862,7 +857,7 @@ GitHubClient.prototype.showGitHubDialog = function(showFiles, fn)
 		{
 			path = null;
 			selectRepo();
-		}), null, true));
+		})));
 		
 		if (!hideRef)
 		{
@@ -871,7 +866,7 @@ GitHubClient.prototype.showGitHubDialog = function(showFiles, fn)
 			{
 				path = null;
 				selectRef();
-			}), null, true));
+			})));
 		}
 		
 		if (path != null && path.length > 0)
@@ -887,7 +882,7 @@ GitHubClient.prototype.showGitHubDialog = function(showFiles, fn)
 					{
 						path = tokens.slice(0, index + 1).join('/');
 						selectFile();
-					}), null, true));
+					})));
 				})(i);
 			}
 		}
@@ -897,7 +892,6 @@ GitHubClient.prototype.showGitHubDialog = function(showFiles, fn)
 	
 	var error = mxUtils.bind(this, function(err)
 	{
-		// Pass a dummy notFoundMessage to bypass special handling 
 		this.ui.handleError(err, null, mxUtils.bind(this, function()
 		{
 			this.ui.spinner.stop();
@@ -915,7 +909,7 @@ GitHubClient.prototype.showGitHubDialog = function(showFiles, fn)
 			{
 				this.ui.hideDialog();
 			}
-		}), null, {});
+		}));
 	});
 	
 	// Adds paging for repos, branches and files (files limited to 1000 by API)
@@ -1063,7 +1057,7 @@ GitHubClient.prototype.showGitHubDialog = function(showFiles, fn)
 		}), error, true);
 	});
 
-	var selectRef = mxUtils.bind(this, function(page, auto)
+	var selectRef = mxUtils.bind(this, function(page)
 	{
 		if (page == null)
 		{
@@ -1119,12 +1113,6 @@ GitHubClient.prototype.showGitHubDialog = function(showFiles, fn)
 			if (branches == null || branches.length == 0)
 			{
 				mxUtils.write(div, mxResources.get('noFiles'));
-			}
-			else if (branches.length == 1 && auto)
-			{
-				ref = branches[0].name;
-				path = '';
-				selectFile();
 			}
 			else
 			{
@@ -1282,9 +1270,10 @@ GitHubClient.prototype.showGitHubDialog = function(showFiles, fn)
 						{
 							org = repository.owner.login;
 							repo = repository.name;
+							ref = repository.default_branch;
 							path = '';
 	
-							selectRef(null, true);
+							selectFile();
 						})));
 						
 						div.appendChild(temp);
