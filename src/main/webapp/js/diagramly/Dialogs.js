@@ -2764,7 +2764,6 @@ var NewDialog = function(editorUi, compact, showName, callback, createOnly, canc
 	var templateXml = null;
 	var selectedElt = null;
 	var templateExtUrl = null;
-	var templateRealUrl = null;
 	var templateInfoObj = null;
 	
 	function create()
@@ -2785,7 +2784,7 @@ var NewDialog = function(editorUi, compact, showName, callback, createOnly, canc
 				editorUi.hideDialog();
 			}
 			
-			callback(templateXml, nameInput.value, templateRealUrl, templateLibs);
+			callback(templateXml, nameInput.value);
 		}
 		else
 		{
@@ -2827,7 +2826,7 @@ var NewDialog = function(editorUi, compact, showName, callback, createOnly, canc
 	var w = 140;
 	var h = 140;
 
-	function selectElement(elt, xml, libs, extUrl, infoObj, clibs, realUrl)
+	function selectElement(elt, xml, libs, extUrl, infoObj, clibs)
 	{
 		if (selectedElt != null)
 		{
@@ -2842,7 +2841,6 @@ var NewDialog = function(editorUi, compact, showName, callback, createOnly, canc
 		templateClibs = clibs;
 		selectedElt = elt;
 		templateExtUrl = extUrl;
-		templateRealUrl = realUrl;
 		templateInfoObj = infoObj;
 		
 		selectedElt.style.backgroundColor = rightHighlight;
@@ -2929,7 +2927,7 @@ var NewDialog = function(editorUi, compact, showName, callback, createOnly, canc
 					
 					if (req.getStatus() >= 200 && req.getStatus() <= 299)
 					{
-						selectElement(elt, req.getText(), libs, null, null, clibs, realUrl);
+						selectElement(elt, req.getText(), libs, null, null, clibs);
 						
 						if (createIt)
 						{
@@ -4526,7 +4524,7 @@ var LinkDialog = function(editorUi, initialValue, btnLabel, fn, showPages)
 	
 	var helpBtn = mxUtils.button(mxResources.get('help'), function()
 	{
-		editorUi.openLink('https://www.diagrams.net/doc/faq/custom-links');
+		editorUi.openLink('https://desk.draw.io/support/solutions/articles/16000080137');
 	});
 
 	helpBtn.style.verticalAlign = 'middle';
@@ -6005,7 +6003,7 @@ var FindWindow = function(ui, x, y, w, h)
 	mxUtils.write(regexLabel, mxResources.get('regularExpression'));
 	div.appendChild(regexLabel);
 	
-    var help = ui.menus.createHelpLink('https://www.diagrams.net/doc/faq/find-shapes');
+    var help = ui.menus.createHelpLink('https://desk.draw.io/support/solutions/articles/16000088250');
     help.style.position = 'relative';
     help.style.marginLeft = '6px';
     help.style.top = '-1px';
@@ -7356,9 +7354,10 @@ var PluginsDialog = function(editorUi, addFn, delFn)
 	buttons.style.marginTop = '14px';
 	buttons.style.textAlign = 'right';
 
+
 	var helpBtn = mxUtils.button(mxResources.get('help'), function()
 	{
-		editorUi.openLink('https://www.diagrams.net/doc/faq/plugins');
+		editorUi.openLink('https://desk.draw.io/support/solutions/articles/16000056430');
 	});
 
 	helpBtn.className = 'geBtn';
@@ -8730,7 +8729,7 @@ var EditShapeDialog = function(editorUi, cell, title, w, h)
 	{
 		var helpBtn = mxUtils.button(mxResources.get('help'), function()
 		{
-			editorUi.openLink('https://www.diagrams.net/doc/faq/shape-complex-create-edit');
+			editorUi.openLink('https://desk.draw.io/support/solutions/articles/16000052874');
 		});
 		
 		helpBtn.className = 'geBtn';

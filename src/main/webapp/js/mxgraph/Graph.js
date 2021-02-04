@@ -6761,8 +6761,9 @@ if (typeof mxVertexHandler != 'undefined')
 							
 							if (rows.length > 0)
 							{
-								cells[i] = (clone) ? this.cloneCell(cells[i]) : cells[i];
-								var sourceCols = this.model.getChildCells(cells[i], true);
+								var cell = (clone) ? this.cloneCell(cells[i]) : cells[i];
+								
+								var sourceCols = this.model.getChildCells(cell, true);
 								var cols = this.model.getChildCells(rows[0], true);
 								var count = cols.length - sourceCols.length;
 								
@@ -6776,7 +6777,7 @@ if (typeof mxVertexHandler != 'undefined')
 										{
 											col.value = '';
 											
-											this.model.add(cells[i], col);
+											this.model.add(cell, col);
 										}
 									}
 								}
@@ -6789,7 +6790,7 @@ if (typeof mxVertexHandler != 'undefined')
 								}
 								
 								// Updates column widths
-								sourceCols = this.model.getChildCells(cells[i], true);
+								sourceCols = this.model.getChildCells(cell, true);
 								
 								for (var j = 0; j < cols.length; j++)
 								{
